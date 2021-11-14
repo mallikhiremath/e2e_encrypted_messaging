@@ -24,6 +24,8 @@ void main() async {
   /// Channels are containers for holding messages between different members. To
   /// learn more about channels and some of our predefined types, checkout our
   /// our channel docs: https://getstream.io/chat/docs/flutter-dart/creating_channels/?language=dart
+  ///
+  /**
   final channel = client.channel(
     'messaging',
     id: 'food-channel',
@@ -37,11 +39,10 @@ void main() async {
   /// `.watch()` is used to create and listen to the channel for updates. If the
   /// channel already exists, it will simply listen for new events.
   await channel.watch();
-
+**/
   runApp(
     MyApp(
-      client: client,
-      channel: channel,
+      client: client
     ),
   );
 }
@@ -50,35 +51,53 @@ class MyApp extends StatelessWidget {
   /// To initialize this example, an instance of [client] and [channel] is required.
   const MyApp({
     Key? key,
-    required this.client,
-    required this.channel,
+    required this.client
   }) : super(key: key);
 
   /// Instance of [StreamChatClient] we created earlier. This contains information about
   /// our application and connection state.
   final StreamChatClient client;
 
-  /// The channel we'd like to observe and participate.
-  final Channel channel;
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      builder: (context, widget) {
-        return StreamChat(
-          client: client,
-          child: widget,
-        );
-      },
-      home: StreamChannel(
-        channel: channel,
-        child: const ChannelPage(),
+      builder: (context, child) => StreamChat(
+        client: client,
+        child: child,
       ),
+      home: const ChannelListPage(),
     );
   }
 }
 
 /// Displays the list of messages inside the channel
+class ChannelListPage extends StatelessWidget {
+  const ChannelListPage({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: ChannelsBloc(
+        child: ChannelListView(
+          filter: Filter.in_(
+            'members',
+            [StreamChat
+                .of(context)
+                .currentUser!
+                .id
+            ],
+          ),
+          sort: const [SortOption('last_message_at')],
+          limit: 20,
+          channelWidget: const ChannelPage(),
+        ),
+      ),
+    );
+  }
+}
+
 class ChannelPage extends StatelessWidget {
   const ChannelPage({
     Key? key,
