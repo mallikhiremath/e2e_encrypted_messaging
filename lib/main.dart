@@ -1,27 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart';
+import 'package:webcrypto/webcrypto.dart';
+import 'appe2ee.dart';
 
 void main() async {
-  /// Create a new instance of [StreamChatClient] passing the apikey obtained from your
+  /// Create an instance of [StreamChatClient] passing the apikey obtained from Stream
   /// project dashboard.
-  final client = StreamChatClient('m7b7hqpfuke8', logLevel: Level.INFO,);
+  final client = StreamChatClient(
+    'm7b7hqpfuke8',
+    logLevel: Level.INFO,
+  );
+
+  /// Initialize the public private key:
+
+  await AppE2EE().generateKeysIfNotPresent();
+  Map<String, dynamic> publicKeyJwk =
+      await AppE2EE().keyPair!.publicKey.exportJsonWebKey();
 
   /// Set the current user. In a production scenario, this should be done using
   /// a backend to generate a user token using our server SDK.
   /// Please see the following for more information:
   /// https://getstream.io/chat/docs/flutter-dart/tokens_and_authentication/?language=dart
-  await client.connectUser(User(id: 'MallikH', name: 'Mallik Hiremath'),
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiTWFsbGlrSCJ9.jg_CD9SSg-7HaASlwDDe7rohep2is48p6Gjv5Q8VR14",
+  await client.connectUser(
+    User(id: 'MallikH', name: 'Mallik Hiremath', extraData: {
+      'image': 'https://picsum.photos/id/1005/200/300',
+      'publicKey': publicKeyJwk
+    }),
+    client.devToken('MallikH').rawValue,
   );
-
-  User user2 = User(id: 'SatyaS', name: 'Satya Salvi');
 
   /// Creates a channel using the type `messaging` and `flutterdevs`.
   /// Channels are containers for holding messages between different members. To
   /// learn more about channels and some of our predefined types, checkout our
   /// our channel docs: https://getstream.io/chat/docs/flutter-dart/creating_channels/?language=dart
   ///
-  /**
+
   final channel = client.channel(
     'messaging',
     id: 'food-channel',
@@ -35,16 +48,13 @@ void main() async {
   /// `.watch()` is used to create and listen to the channel for updates. If the
   /// channel already exists, it will simply listen for new events.
   await channel.watch();
-**/
+
   runApp(MyApp(client: client));
 }
 
 class MyApp extends StatelessWidget {
   /// To initialize this example, an instance of [client] and [channel] is required.
-  const MyApp({
-    Key? key,
-    required this.client
-  }) : super(key: key);
+  const MyApp({Key? key, required this.client}) : super(key: key);
 
   /// Instance of [StreamChatClient] we created earlier. This contains information about
   /// our application and connection state.
@@ -52,9 +62,31 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeData = ThemeData(primarySwatch: Colors.green);
+    final defaultTheme = StreamChatThemeData.fromTheme(themeData);
+    final colorTheme = defaultTheme.colorTheme;
+    final customTheme = defaultTheme.merge(StreamChatThemeData(
+      channelPreviewTheme: ChannelPreviewThemeData(
+        avatarTheme: AvatarThemeData(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+      otherMessageTheme: MessageThemeData(
+        messageBackgroundColor: colorTheme.textHighEmphasis,
+        messageTextStyle: TextStyle(
+          color: colorTheme.barsBg,
+        ),
+        avatarTheme: AvatarThemeData(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+    ));
+
     return MaterialApp(
+      theme: themeData,
       builder: (context, child) => StreamChat(
         client: client,
+        streamChatThemeData: customTheme,
         child: child,
       ),
       home: const ChannelListPage(),
@@ -88,7 +120,7 @@ class ChannelListPage extends StatelessWidget {
 
   Widget _channelPreviewBuilder(BuildContext context, Channel channel) {
     final lastMessage = channel.state?.messages.reversed.firstWhere(
-          (message) => !message.isDeleted,
+      (message) => !message.isDeleted,
     );
 
     final subtitle = lastMessage == null ? 'nothing yet' : lastMessage.text!;
@@ -119,9 +151,9 @@ class ChannelListPage extends StatelessWidget {
       subtitle: Text(subtitle),
       trailing: channel.state!.unreadCount > 0
           ? CircleAvatar(
-        radius: 10,
-        child: Text(channel.state!.unreadCount.toString()),
-      )
+              radius: 10,
+              child: Text(channel.state!.unreadCount.toString()),
+            )
           : const SizedBox(),
     );
   }
@@ -145,9 +177,59 @@ class ChannelPage extends StatelessWidget {
               ),
             ),
           ),
-          const MessageInput(),
+          MessageInput(
+            disableAttachments: true,
+            preMessageSending: (Message message) async {
+              String encryptedText = await AppE2EE().encrypt(message.text);
+              Message encryptedMessage = message.copyWith(text: encryptedText);
+              return encryptedMessage;
+            },
+          ),
         ],
       ),
+    );
+  }
+
+  Widget _messageBuilder(
+    BuildContext context,
+    MessageDetails details,
+    List<Message> messages,
+  ) {
+    Message message = details.message;
+    final isCurrentUser = StreamChat.of(context).user!.id == message.user!.id;
+    final textAlign = isCurrentUser ? TextAlign.right : TextAlign.left;
+    final color = isCurrentUser ? Colors.blueGrey : Colors.blue;
+
+    return FutureBuilder<String>(
+      future: AppE2EE().decrypt(message.text), // a Future<String> or null
+      builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
+        switch (snapshot.connectionState) {
+          case ConnectionState.none:
+          case ConnectionState.waiting:
+          default:
+            if (snapshot.hasError)
+              return Text('Error: ${snapshot.error}');
+            else {
+              return Padding(
+                padding: EdgeInsets.all(5.0),
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: color, width: 1),
+                    borderRadius: const BorderRadius.all(
+                      Radius.circular(5.0),
+                    ),
+                  ),
+                  child: ListTile(
+                    title: Text(
+                      "title",
+                      textAlign: textAlign,
+                    ),
+                  ),
+                ),
+              );
+            }
+        }
+      },
     );
   }
 }
@@ -174,10 +256,25 @@ class ThreadPage extends StatelessWidget {
             ),
           ),
           MessageInput(
-            parentMessage: parent,
+            disableAttachments: true,
+            preMessageSending: (Message message) async {
+              String encryptedText = await AppE2EE().encrypt(message.text);
+              Message encryptedMessage = message.copyWith(text: encryptedText);
+              return encryptedMessage;
+            },
           ),
         ],
       ),
     );
   }
+}
+
+Future<void> _generateKeys() async {
+  //1. Generate keys
+  KeyPair<EcdhPrivateKey, EcdhPublicKey> keyPair =
+      await EcdhPrivateKey.generateKey(EllipticCurve.p256);
+  Map<String, dynamic> publicKeyJwk =
+      await keyPair.publicKey.exportJsonWebKey();
+  Map<String, dynamic> privateKeyJwk =
+      await keyPair.privateKey.exportJsonWebKey();
 }
