@@ -172,6 +172,7 @@ class ChannelPage extends StatelessWidget {
         children: <Widget>[
           Expanded(
             child: MessageListView(
+              messageBuilder: _messageBuilder,
               threadBuilder: (_, parentMessage) => ThreadPage(
                 parent: parentMessage,
               ),
@@ -191,10 +192,10 @@ class ChannelPage extends StatelessWidget {
   }
 
   Widget _messageBuilder(
-    BuildContext context,
-    MessageDetails details,
-    List<Message> messages,
-  ) {
+      BuildContext context,
+      MessageDetails details,
+      List<Message> messages,
+      MessageWidget defaultMessageWidget,) {
     Message message = details.message;
     final isCurrentUser = StreamChat.of(context).user!.id == message.user!.id;
     final textAlign = isCurrentUser ? TextAlign.right : TextAlign.left;
@@ -221,7 +222,7 @@ class ChannelPage extends StatelessWidget {
                   ),
                   child: ListTile(
                     title: Text(
-                      "title",
+                      snapshot.data?? 'no data!',
                       textAlign: textAlign,
                     ),
                   ),
