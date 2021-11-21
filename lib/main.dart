@@ -22,22 +22,22 @@ void main() async {
   /// a backend to generate a user token using our server SDK.
   /// Please see the following for more information:
   /// https://getstream.io/chat/docs/flutter-dart/tokens_and_authentication/?language=dart
-  // await client.connectUser(
-  //   User(id: 'MallikH', name: 'Mallik Hiremath', extraData: {
-  //     'image': 'https://picsum.photos/id/1005/200/300',
-  //     'publicKey': publicKeyJwk
-  //   }),
-  //   client.devToken('MallikH').rawValue,
-  // );
-
-
   await client.connectUser(
-    User(id: 'SatyaS', name: 'Satya Salvi', extraData: {
+    User(id: 'MallikH', name: 'Mallik Hiremath', extraData: {
       'image': 'https://picsum.photos/id/1005/200/300',
       'publicKey': publicKeyJwk
     }),
-    client.devToken('SatyaS').rawValue,
+    client.devToken('MallikH').rawValue,
   );
+
+
+  // await client.connectUser(
+  //   User(id: 'SatyaS', name: 'Satya Salvi', extraData: {
+  //     'image': 'https://picsum.photos/id/1005/200/300',
+  //     'publicKey': publicKeyJwk
+  //   }),
+  //   client.devToken('SatyaS').rawValue,
+  // );
 
 
   /// Creates a channel using the type `messaging` and `flutterdevs`.
@@ -56,12 +56,17 @@ void main() async {
     },
   );
 
+  // final userList = await client.queryUsers(
+  //   filter: Filter.in_( "id", const ['MallikH']),
+  // );
+
   final userList = await client.queryUsers(
-    filter: Filter.in_( "id", const ['MallikH']),
+    filter: Filter.in_( "id", const ['SatyaS']),
   );
 
+
   User user1 = userList.users.first;
-  print('MallikH User details = $user1');
+  print('user1  details = $user1');
 
   Map<String, Object?> extraData = user1.extraData;
   print('the extraData = $extraData');
@@ -71,16 +76,6 @@ void main() async {
     await AppE2EE().deriveBitsFromPublicKey(otherPublicStr);
   }
 
-
-
-  // final userList = await client.queryUsers(
-  //   filter: Filter.in_( "id", const ['MallikH']),
-  // );
-
-
-  // final userList = await client.queryUsers(
-  //   filter: Filter.in_( "name", const ['Satya Salvi']),
-  // );
   /// `.watch()` is used to create and listen to the channel for updates. If the
   /// channel already exists, it will simply listen for new events.
   await channel.watch();
