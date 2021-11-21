@@ -1,14 +1,27 @@
-# awesome_flutter_chat
-
+# End To End encrypted messaging App
 Secure Messaging App
 
 ## Getting Started
+###Why Flutter?
 
-This project is a starting point for a Flutter application.
+![img.png](images/Flutter_Intro.png)
 
-A few resources to get you started if this is your first Flutter project:
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
+### About Stream SDK:
+
+![img.png](images/StreamSDKStuff.png)
+
+
+### E2E Secure Messaging 
+
+![img.png](images/E2E_Secure_Messaging.png)
+
+### Web Cryptography
+![img.png](images/Web_Cryptography_API.png)
+
+
+A few Flutter resources:
+- [Lab: Write Flutter app](https://flutter.dev/docs/get-started/codelab)
 - [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
 
 For help getting started with Flutter, view our
