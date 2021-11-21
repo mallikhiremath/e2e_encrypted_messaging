@@ -4,6 +4,8 @@ import 'package:webcrypto/webcrypto.dart';
 import 'appe2ee.dart';
 
 void main() async {
+
+  WidgetsFlutterBinding.ensureInitialized();
   /// Create an instance of [StreamChatClient] passing the apikey obtained from Stream
   /// project dashboard.
   final client = StreamChatClient(
@@ -14,20 +16,29 @@ void main() async {
   /// Initialize the public private key:
 
   await AppE2EE().generateKeysIfNotPresent();
-  Map<String, dynamic> publicKeyJwk =
-      await AppE2EE().keyPair!.publicKey.exportJsonWebKey();
+  Map<String, dynamic>? publicKeyJwk = AppE2EE().publicKeyJwk;
 
   /// Set the current user. In a production scenario, this should be done using
   /// a backend to generate a user token using our server SDK.
   /// Please see the following for more information:
   /// https://getstream.io/chat/docs/flutter-dart/tokens_and_authentication/?language=dart
+  // await client.connectUser(
+  //   User(id: 'MallikH', name: 'Mallik Hiremath', extraData: {
+  //     'image': 'https://picsum.photos/id/1005/200/300',
+  //     'publicKey': publicKeyJwk
+  //   }),
+  //   client.devToken('MallikH').rawValue,
+  // );
+
+
   await client.connectUser(
-    User(id: 'MallikH', name: 'Mallik Hiremath', extraData: {
+    User(id: 'SatyaS', name: 'Satya Salvi', extraData: {
       'image': 'https://picsum.photos/id/1005/200/300',
       'publicKey': publicKeyJwk
     }),
-    client.devToken('MallikH').rawValue,
+    client.devToken('SatyaS').rawValue,
   );
+
 
   /// Creates a channel using the type `messaging` and `flutterdevs`.
   /// Channels are containers for holding messages between different members. To
@@ -45,10 +56,34 @@ void main() async {
     },
   );
 
+  final userList = await client.queryUsers(
+    filter: Filter.in_( "id", const ['MallikH']),
+  );
+
+  User user1 = userList.users.first;
+  print('MallikH User details = $user1');
+
+  Map<String, Object?> extraData = user1.extraData;
+  print('the extraData = $extraData');
+  if(extraData.isNotEmpty) {
+    var otherPublicStr =  extraData["publicKey"] as Map<String, dynamic>;
+    print('the other publickeyStr = $otherPublicStr');
+    await AppE2EE().deriveBitsFromPublicKey(otherPublicStr);
+  }
+
+
+
+  // final userList = await client.queryUsers(
+  //   filter: Filter.in_( "id", const ['MallikH']),
+  // );
+
+
+  // final userList = await client.queryUsers(
+  //   filter: Filter.in_( "name", const ['Satya Salvi']),
+  // );
   /// `.watch()` is used to create and listen to the channel for updates. If the
   /// channel already exists, it will simply listen for new events.
   await channel.watch();
-
   runApp(MyApp(client: client));
 }
 
@@ -201,6 +236,7 @@ class ChannelPage extends StatelessWidget {
     final textAlign = isCurrentUser ? TextAlign.right : TextAlign.left;
     final color = isCurrentUser ? Colors.blueGrey : Colors.blue;
 
+
     return FutureBuilder<String>(
       future: AppE2EE().decrypt(message.text), // a Future<String> or null
       builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
@@ -222,7 +258,7 @@ class ChannelPage extends StatelessWidget {
                   ),
                   child: ListTile(
                     title: Text(
-                      snapshot.data?? 'no data!',
+                      snapshot.data?? '',
                       textAlign: textAlign,
                     ),
                   ),
