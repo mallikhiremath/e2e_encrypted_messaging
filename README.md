@@ -2,7 +2,7 @@
 Secure Messaging App
 
 ## Getting Started
-###Why Flutter?
+### Why Flutter?
 
 ![img.png](images/Flutter_Intro.png)
 
