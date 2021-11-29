@@ -73,9 +73,7 @@ the dependencies section.
 ```dart
 dependencies:flutter:sdk: flutter
 
-stream_chat_flutter: ^
-3.1
-.1
+stream_chat_flutter: ^3.1.1
 ```
 
 Additionally `stream_chat_flutter_core` provides bare-bones implementation with logic
