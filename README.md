@@ -55,19 +55,19 @@ flutter
 upgrade
 ```
 
-### The backend is implemented using the hosted messaging solution at https://gestream.io servers
+### The backend is implemented using the hosted messaging solution at https://getstream.io servers
 
-Stream provides the hosted solution for messaging backend
+Stream provides the hosted solution for messaging backend.
 The stream backend could be customized to our needs  
 
 Stream also provides the flutter client SDKs to support the rapid app development.
 
-This application makes use of `stream_chat_flutter`
+This application makes use of `stream_chat_flutter` SDK.
 It is the official Flutter components for Stream Chat, a service for building chat applications.
 at https://pub.dev/packages/stream_chat_flutter
 
 
-Add stream_chat_flutter to the dependencies, to do that just open pubspec.yaml and add it inside
+Add `stream_chat_flutter` to the dependencies, to do that just open pubspec.yaml and add it inside
 the dependencies section.
 
 ```dart
