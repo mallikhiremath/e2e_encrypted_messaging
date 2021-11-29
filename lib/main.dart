@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart';
-import 'package:webcrypto/webcrypto.dart';
 import 'appe2ee.dart';
 
+/// This is the main class that would launch the application.
+/// This class makes use of stream chat flutter sdk (and client)
 void main() async {
-
   WidgetsFlutterBinding.ensureInitialized();
-  /// Create an instance of [StreamChatClient] passing the apikey obtained from Stream
+
+  /// Create an instance of [StreamChatClient] passing the key obtained from Stream
   /// project dashboard.
   final client = StreamChatClient(
     'm7b7hqpfuke8',
@@ -30,7 +31,6 @@ void main() async {
     client.devToken('MallikH').rawValue,
   );
 
-
   // await client.connectUser(
   //   User(id: 'SatyaS', name: 'Satya Salvi', extraData: {
   //     'image': 'https://picsum.photos/id/1005/200/300',
@@ -38,7 +38,6 @@ void main() async {
   //   }),
   //   client.devToken('SatyaS').rawValue,
   // );
-
 
   /// Creates a channel using the type `messaging` and `flutterdevs`.
   /// Channels are containers for holding messages between different members. To
@@ -61,17 +60,16 @@ void main() async {
   // );
 
   final userList = await client.queryUsers(
-    filter: Filter.in_( "id", const ['SatyaS']),
+    filter: Filter.in_("id", const ['SatyaS']),
   );
-
 
   User user1 = userList.users.first;
   print('user1  details = $user1');
 
   Map<String, Object?> extraData = user1.extraData;
   print('the extraData = $extraData');
-  if(extraData.isNotEmpty) {
-    var otherPublicStr =  extraData["publicKey"] as Map<String, dynamic>;
+  if (extraData.isNotEmpty) {
+    var otherPublicStr = extraData["publicKey"] as Map<String, dynamic>;
     print('the other publickeyStr = $otherPublicStr');
     await AppE2EE().deriveBitsFromPublicKey(otherPublicStr);
   }
@@ -82,6 +80,7 @@ void main() async {
   runApp(MyApp(client: client));
 }
 
+/// This class represents the Messaging App
 class MyApp extends StatelessWidget {
   /// To initialize this example, an instance of [client] and [channel] is required.
   const MyApp({Key? key, required this.client}) : super(key: key);
@@ -189,6 +188,9 @@ class ChannelListPage extends StatelessWidget {
   }
 }
 
+/// This class represents the ChannelPage
+/// provides the necessary support to display the channels
+/// on the ChannelPage
 class ChannelPage extends StatelessWidget {
   const ChannelPage({
     Key? key,
@@ -222,15 +224,15 @@ class ChannelPage extends StatelessWidget {
   }
 
   Widget _messageBuilder(
-      BuildContext context,
-      MessageDetails details,
-      List<Message> messages,
-      MessageWidget defaultMessageWidget,) {
+    BuildContext context,
+    MessageDetails details,
+    List<Message> messages,
+    MessageWidget defaultMessageWidget,
+  ) {
     Message message = details.message;
     final isCurrentUser = StreamChat.of(context).user!.id == message.user!.id;
     final textAlign = isCurrentUser ? TextAlign.right : TextAlign.left;
     final color = isCurrentUser ? Colors.blueGrey : Colors.blue;
-
 
     return FutureBuilder<String>(
       future: AppE2EE().decrypt(message.text), // a Future<String> or null
@@ -253,7 +255,7 @@ class ChannelPage extends StatelessWidget {
                   ),
                   child: ListTile(
                     title: Text(
-                      snapshot.data?? '',
+                      snapshot.data ?? '',
                       textAlign: textAlign,
                     ),
                   ),
@@ -266,6 +268,7 @@ class ChannelPage extends StatelessWidget {
   }
 }
 
+/// This class provides the necessary support for the Threaded messages
 class ThreadPage extends StatelessWidget {
   const ThreadPage({
     Key? key,
@@ -299,14 +302,4 @@ class ThreadPage extends StatelessWidget {
       ),
     );
   }
-}
-
-Future<void> _generateKeys() async {
-  //1. Generate keys
-  KeyPair<EcdhPrivateKey, EcdhPublicKey> keyPair =
-      await EcdhPrivateKey.generateKey(EllipticCurve.p256);
-  Map<String, dynamic> publicKeyJwk =
-      await keyPair.publicKey.exportJsonWebKey();
-  Map<String, dynamic> privateKeyJwk =
-      await keyPair.privateKey.exportJsonWebKey();
 }

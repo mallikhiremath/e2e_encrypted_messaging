@@ -4,6 +4,10 @@ import 'dart:typed_data';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:webcrypto/webcrypto.dart';
 
+/// This class provides key encryption and decryption functionalities.
+/// This class makes use of WebCrypto library for encryption and decryption.
+/// This class also create Public Private Key Pair upon booting
+/// of the app for the first time on a device.
 class AppE2EE {
   static final AppE2EE _singleton = AppE2EE._internal();
 
@@ -13,6 +17,7 @@ class AppE2EE {
 
   AppE2EE._internal();
 
+  /// This holds the private, public key pair
   KeyPair<EcdhPrivateKey, EcdhPublicKey>? keyPair;
   Map<String, dynamic>? publicKeyJwk;
   Map<String, dynamic>? privateKeyJwk;
@@ -20,10 +25,17 @@ class AppE2EE {
   AesGcmSecretKey? aesGcmSecretKey;
   final Uint8List iv = Uint8List.fromList('Initialization Vector'.codeUnits);
 
+  /// This method checks if the keys are stored in the shared preferences
+  /// If so it returns the shared key
+  /// Else it generates public, private key pair for the
+  /// first time the App being opened on a device.
+  /// And it saves the keys to the shared preferences
+  /// It also computes the derived bytes using the public private keys.
   Future<void> generateKeysIfNotPresent() async {
     final prefs = await SharedPreferences.getInstance();
     String derivedBitsString = (prefs.getString('derivedBits') ?? '');
     String publicKeyJwkStr = prefs.getString('publicKeyJwk') ?? '';
+
     if (derivedBitsString.isNotEmpty) {
       derivedBits = Uint8List.fromList(derivedBitsString.codeUnits);
       if (publicKeyJwkStr.isNotEmpty) {
@@ -35,12 +47,10 @@ class AppE2EE {
         privateKeyJwk = jsonDecode(privateKeyJwkStr) as Map<String, dynamic>;
       }
       return;
+    } else {
+      keyPair = await EcdhPrivateKey.generateKey(EllipticCurve.p256);
+      deriveBits();
     }
-
-    print("This is the first time keys being generated on this device");
-    // 1. Generate keys
-    keyPair = await EcdhPrivateKey.generateKey(EllipticCurve.p256);
-    deriveBits();
   }
 
   Future<void> deriveBits() async {
@@ -58,6 +68,8 @@ class AppE2EE {
     print('derivedBits $derivedBits');
   }
 
+  /// This method computes derivedBits using supplied public key (other user's)
+  /// And current (local) user's private key
   Future<void> deriveBitsFromPublicKey(
       Map<String, dynamic> otherPublicKeyJwk) async {
     final prefs = await SharedPreferences.getInstance();
@@ -74,6 +86,7 @@ class AppE2EE {
     }
   }
 
+  /// this method encrypts and returns the given message
   Future<String> encrypt(String? message) async {
     // 3. Encrypt
     aesGcmSecretKey = await AesGcmSecretKey.importRawKey(derivedBits!);
@@ -87,10 +100,10 @@ class AppE2EE {
       encryptedString = "";
     }
 
-    print('encryptedString $encryptedString');
     return encryptedString;
   }
 
+  /// this method decrypts and returns the given encryptedMessage
   Future<String> decrypt(String? encryptedMessage) async {
     // 4. Decrypt
     aesGcmSecretKey = await AesGcmSecretKey.importRawKey(derivedBits!);
@@ -98,7 +111,6 @@ class AppE2EE {
     Uint8List? decryptdBytes = await aesGcmSecretKey?.decryptBytes(message, iv);
     String decryptdString = String.fromCharCodes(decryptdBytes!);
 
-    print('decryptdString $decryptdString');
     return decryptdString;
   }
 }
