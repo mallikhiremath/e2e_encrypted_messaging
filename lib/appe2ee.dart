@@ -24,7 +24,8 @@ class AppE2EE {
     final prefs = await SharedPreferences.getInstance();
     String derivedBitsString = (prefs.getString('derivedBits') ?? '');
     String publicKeyJwkStr = prefs.getString('publicKeyJwk') ?? '';
-    if (publicKeyJwkStr.isNotEmpty) {
+    if (derivedBitsString.isNotEmpty) {
+      derivedBits = Uint8List.fromList(derivedBitsString.codeUnits);
       if (publicKeyJwkStr.isNotEmpty) {
         publicKeyJwk = jsonDecode(publicKeyJwkStr) as Map<String, dynamic>;
       }
@@ -33,13 +34,10 @@ class AppE2EE {
       if (privateKeyJwkStr.isNotEmpty) {
         privateKeyJwk = jsonDecode(privateKeyJwkStr) as Map<String, dynamic>;
       }
-
-      derivedBits = Uint8List.fromList(derivedBitsString.codeUnits);
-      print('derivedBits present');
-
       return;
     }
 
+    print("This is the first time keys being generated on this device");
     // 1. Generate keys
     keyPair = await EcdhPrivateKey.generateKey(EllipticCurve.p256);
     deriveBits();
@@ -62,11 +60,6 @@ class AppE2EE {
 
   Future<void> deriveBitsFromPublicKey(
       Map<String, dynamic> otherPublicKeyJwk) async {
-    // Map<String, dynamic>? otherPublicKeyJwk;
-    // if(otherPublicKeyStr.isNotEmpty) {
-    //   otherPublicKeyJwk = jsonDecode(otherPublicKeyStr) as Map<String, dynamic>;
-    // }
-
     final prefs = await SharedPreferences.getInstance();
     String privateKeyJwkStr = prefs.getString('privateKeyJwk') ?? '';
     if (privateKeyJwkStr.isNotEmpty) {
