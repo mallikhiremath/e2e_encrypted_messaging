@@ -18,6 +18,17 @@ cyber security aware world!.
 Here we have put our best efforts to create a secure end to end encryption messaging system using
 the Flutter SDK and Stream SDK.
 
+### Secure messaging app end-to-end architecture
+
+![img.png](images/E2E_Secure_Messaging_ArchitectureDiagram.jpg)
+
+In this App we are mkaing use of the following main SDKs, Clients, Components:
+1. Flutter SDK for App Development.
+2. Stream.io's SDK for chat client features
+3. Stream.io's hosted backend for message store and forward to chant clients.
+4. Flutter version of WebCrypto SDK for cryptographic operations.  
+
+
 ### This App uses Flutter SDK for App development.
 
 #### Flutter at glance:
