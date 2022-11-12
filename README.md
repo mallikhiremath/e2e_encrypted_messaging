@@ -9,8 +9,8 @@ end-to-end encryption. In these apps, the private messages could be potentially 
 parties, organizations behind the apps. At times Government can inquire the hosting companies to
 release the message history for a given user or for a communication channel in a group.
 
-On the other hand there are handful of Chat messaging applications such as WhatsApp, Signal do
-either a limited or full end-to-end encryption. The end-to-end encryption measure prohibits anyone
+On the other hand there are handful of chat messaging applications such as WhatsApp, Signal do
+either a limited or full end-to-end encryption. The end-to-end encryption measure prohibits others
 from seeing the contents of the message except for sender the intended recipients. The best secure
 chat applications are not only becoming more sought-after, they are also becoming crucial in today's
 cyber security aware world!.
